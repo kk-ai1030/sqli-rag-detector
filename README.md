@@ -4,7 +4,7 @@
 
 ## 功能特点
 
-- 随机森林模型识别SQL注入，准确率85%+
+- 随机森林模型识别SQL注入，准确率85%
 - RAG检索知识库，生成注入原理与修复建议
 - 检测到注入时一键跳转sqli-labs对应关卡
 - 优雅降级、环境变量保护API Key、Docker一键部署
@@ -29,7 +29,7 @@ pip install -r requirements.txt
 ### 启动靶场
 docker start sqli-labs-8scenes
 
-靶场地址访问 http://localhost:8000
+访问 http://localhost:8080
 
 ### 运行服务
 python app.py
@@ -38,10 +38,10 @@ python app.py
 
 ## 项目结构
 
-sqli-rag-detector/        
-├── README.md              
+sqli-rag-detector/
 ├── .gitignore
-└── rag/          
+├── README.md
+└── rag/
     ├── app.py
     ├── rag_module.py
     ├── knowledge.txt
