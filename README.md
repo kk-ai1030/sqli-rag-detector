@@ -38,11 +38,12 @@ python app.py
 
 ## 项目结构
 
-rag/
-├── app.py
-├── rag_module.py
-├── knowledge.txt
-├── requirements.txt
-└── docker_start.bat
-.gitignore
-README.md
+sqli-rag-detector/        
+├── README.md              
+├── .gitignore
+└── rag/          
+    ├── app.py
+    ├── rag_module.py
+    ├── knowledge.txt
+    ├── requirements.txt
+    └── docker_start.bat
