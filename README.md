@@ -37,7 +37,7 @@ python app.py
 访问 http://localhost:5001
 
 ## 项目结构
-
+'''
 sqli-rag-detector/
 ├── .gitignore
 ├── README.md
@@ -47,3 +47,4 @@ sqli-rag-detector/
     ├── knowledge.txt
     ├── requirements.txt
     └── docker_start.bat
+'''
