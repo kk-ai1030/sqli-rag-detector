@@ -40,7 +40,7 @@ python app.py
 访问 http://localhost:5001
 
 ## 项目结构
-
+```
 rag/
 ├── app.py # Flask Web 服务
 ├── rag_module.py # RAG 检索与 LLM 调用（核心）
@@ -50,3 +50,4 @@ rag/
 └── docker_start.bat # Docker 靶场启动脚本
 .gitignore
 README.md
+```
