@@ -1,7 +1,26 @@
+# IDE
 .idea/
+.vscode/
+
+# Python
 __pycache__/
 *.pyc
+
+# 模型文件（允许这两个）
 *.pkl
-*.joblib
+!sql_rf_model.pkl
+!sql_tfidf.pkl
+
+# 数据集
 *.csv
+
+# API Key
 .env
+*.key
+
+# 向量数据库
+chroma_db/
+
+# 系统文件
+.DS_Store
+Thumbs.db

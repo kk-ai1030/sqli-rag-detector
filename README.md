@@ -44,6 +44,8 @@ python app.py
 rag/
 ├── app.py # Flask Web 服务
 ├── rag_module.py # RAG 检索与 LLM 调用（核心）
+├── sql_rf_model.pkl # 随机森林模型
+├── sql_tfidf.pkl # TF-IDF 向量器
 ├── knowledge.txt # 知识库源文件
 ├── chroma_db/ # 向量库持久化目录（自动生成）
 ├── requirements.txt # Python 依赖
