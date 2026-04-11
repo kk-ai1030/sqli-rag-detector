@@ -1,20 +1,18 @@
-# rag_module.py（优化版 - 使用 ChatTongyi）
+# rag_module.py
 import os
 from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_community.embeddings import DashScopeEmbeddings
-from langchain_community.chat_models import ChatTongyi  # 改用 ChatTongyi
+from langchain_community.chat_models import ChatTongyi
 from langchain_core.prompts import ChatPromptTemplate
 
-# 阿里云百炼配置
 DASHSCOPE_API_KEY = os.getenv("DASHSCOPE_API_KEY", "")
-if not DASHSCOPE_API_KEY:
-    print("⚠️ 警告：未设置 DASHSCOPE_API_KEY 环境变量")
-
 _retriever = None
 _llm = None
 KNOWLEDGE_FILE = "knowledge.txt"
+PERSIST_DIR = "./chroma_db"
+COLLECTION_NAME = "sql_injection_kb"
 
 
 def _ensure_knowledge_file():
@@ -37,48 +35,60 @@ def get_llm():
     global _llm
     if _llm is None:
         _llm = ChatTongyi(
-            model="qwen3-max",  # 你用的是 Qwen3-Max
+            model="qwen3-max",
             temperature=0.7,
-            api_key=DASHSCOPE_API_KEY,  # 直接传入 API Key
+            api_key=DASHSCOPE_API_KEY,
         )
         print("✅ LLM 初始化完成（Qwen3-Max）")
     return _llm
 
 
 def init_rag():
-    """初始化 RAG 检索器（带持久化）"""
+    """初始化 RAG 检索器（检查持久化，避免重复创建）"""
     global _retriever
     if _retriever:
         return
 
     _ensure_knowledge_file()
-    print("📖 加载知识库...")
-    loader = TextLoader(KNOWLEDGE_FILE, encoding="utf-8")
-    docs = loader.load()
 
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
-    documents = text_splitter.split_documents(docs)
-    print(f"   切分为 {len(documents)} 个文本块")
-
-    print("📊 创建向量库...")
     embeddings = DashScopeEmbeddings(
-        model="text-embedding-v3",  # 升级到 v3
+        model="text-embedding-v3",
         dashscope_api_key=DASHSCOPE_API_KEY
     )
 
-    PERSIST_DIR = "./chroma_db"
-    vectorstore = Chroma.from_documents(
-        documents=documents,
-        embedding=embeddings,
-        persist_directory=PERSIST_DIR,
-        collection_name="sql_injection_kb"
-    )
+    # ========== 判断向量库是否已存在 ==========
+    if os.path.exists(PERSIST_DIR) and os.listdir(PERSIST_DIR):
+        # 向量库已存在，直接加载
+        print("📀 检测到已有向量库，直接加载...")
+        vectorstore = Chroma(
+            persist_directory=PERSIST_DIR,
+            embedding_function=embeddings,
+            collection_name=COLLECTION_NAME
+        )
+        print("✅ 从持久化加载 RAG 检索器成功")
+    else:
+        # 向量库不存在，从文档创建
+        print("📖 首次运行，加载知识库并创建向量库...")
+        loader = TextLoader(KNOWLEDGE_FILE, encoding="utf-8")
+        docs = loader.load()
+
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+        documents = text_splitter.split_documents(docs)
+        print(f"   切分为 {len(documents)} 个文本块")
+
+        print("📊 创建向量库...")
+        vectorstore = Chroma.from_documents(
+            documents=documents,
+            embedding=embeddings,
+            persist_directory=PERSIST_DIR,
+            collection_name=COLLECTION_NAME
+        )
+        print("✅ 向量库创建完成并持久化")
 
     _retriever = vectorstore.as_retriever(
-        search_type="similarity_score_threshold",
-        search_kwargs={"k": 4,  "score_threshold": 0.5}
+        search_type="similarity",
+        search_kwargs={"k": 4}
     )
-    print("✅ RAG 检索器初始化完成（已持久化）")
 
 
 def get_injection_explanation(injection_type: str) -> str:
@@ -88,13 +98,13 @@ def get_injection_explanation(injection_type: str) -> str:
         init_rag()
 
     query_map = {
-            "时间盲注": "解释时间盲注的原理和修复建议",
-            "联合查询注入": "解释联合查询注入的原理和修复建议",
-            "报错注入": "解释报错注入的原理和修复建议",
-            "布尔盲注": "解释布尔盲注的原理和修复建议",
-            "堆叠查询注入": "解释堆叠查询注入的原理和修复建议",
-            "宽字节注入": "解释宽字节注入的原理和修复建议",
-            "二次注入": "解释二次注入的原理和修复建议"
+        "时间盲注": "解释时间盲注的原理和修复建议",
+        "联合查询注入": "解释联合查询注入的原理和修复建议",
+        "报错注入": "解释报错注入的原理和修复建议",
+        "布尔盲注": "解释布尔盲注的原理和修复建议",
+        "堆叠查询注入": "解释堆叠查询注入的原理和修复建议",
+        "宽字节注入": "解释宽字节注入的原理和修复建议",
+        "二次注入": "解释二次注入的原理和修复建议"
     }
     query = query_map.get(injection_type, "解释 SQL 注入的原理和通用修复建议")
 
@@ -105,7 +115,6 @@ def get_injection_explanation(injection_type: str) -> str:
         else:
             context = "知识库中暂无相关信息"
 
-        # 使用 ChatPromptTemplate
         prompt_template = ChatPromptTemplate.from_messages([
             ("system", "你是一个SQL注入安全专家。请严格基于以下知识库内容回答，不要编造信息。\n\n知识库内容：\n{context}"),
             ("human", "{query}")
@@ -123,7 +132,7 @@ def get_injection_explanation(injection_type: str) -> str:
         return f"知识库检索失败：{e}"
 
 
-# 注入类型对应的靶场 URL 映射（保持不变）
+# 注入类型对应的靶场 URL 映射
 INJECTION_URL_MAP = {
     "联合查询注入": "http://127.0.0.1:8080/Less-1/",
     "报错注入": "http://127.0.0.1:8080/Less-5/",
@@ -139,5 +148,3 @@ def get_target_url(injection_type: str) -> str:
 
 if __name__ == "__main__":
     init_rag()
-    # result = get_injection_explanation("联合查询注入")
-    # print("测试结果：", result)

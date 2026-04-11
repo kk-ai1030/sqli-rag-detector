@@ -1,13 +1,17 @@
-# SQL注入智能检测平台
+# 🛡️ AI SQL注入智能检测平台
 
-基于随机森林 + RAG + 通义千问 Qwen3-Max的 SQL 注入检测系统。检测到注入后，自动通过 RAG 检索知识库，生成原理解释和修复建议，并支持一键跳转 Docker 靶场实战验证。
+基于**随机森林 + RAG + Agent** 的 SQL 注入检测系统。支持注入检测、AI 原理解释、多轮对话、靶场联动。
 
-## 功能特点
+## ✨ 核心特性
 
-- ⚡ 双重检测架构：随机森林快速筛查（毫秒级）+ RAG 深度解释
-- 🧠 RAG 增强问答：基于 LangChain + Chroma，检索注入原理与修复方案
-- 🔗 靶场联动：检测出注入类型后，自动返回对应 sql-labs 关卡链接
-- 📦 工程化设计：向量库持久化、Prompt 模板化、LLM 单例模式
+| 模块 | 能力 |
+| :--- | :--- |
+| **🔍 注入检测** | 随机森林模型快速判断（毫秒级），准确率 85% |
+| **🧠 RAG 解释** | 检索知识库 + 通义千问生成原理与修复建议 |
+| **🤖 Agent 智能体** | ReAct 框架多轮对话，自主调用检测/知识库/靶场工具 |
+| **🎯 靶场联动** | 一键跳转 sql-labs 对应关卡，实战验证 |
+| **💾 持久化** | 向量库持久化，重启无需重建 |
+| **📝 历史会话** | 前端支持多会话管理，对话自动保存 |
 
 ## 🛠️ 技术栈
 
@@ -15,11 +19,11 @@
 | :--- | :--- |
 | Web 框架 | Flask |
 | 机器学习 | scikit-learn（随机森林） |
-| RAG 框架 | LangChain |
-| 大模型 | 通义千问 Qwen3-Max（ChatTongyi） |
 | 向量数据库 | Chroma（持久化） |
-| Embedding | DashScope（text-embedding-v3） |
-| 容器化 | Docker |
+| 大模型 | 通义千问 Qwen3-Max |
+| Agent 框架 | LangChain ReAct |
+| 容器 | Docker |
+
 
 ## 🚀 快速开始
 
@@ -39,17 +43,19 @@ python app.py
 
 访问 http://localhost:5001
 
-## 项目结构
+## 📁 项目结构
 ```
 rag/
-├── app.py # Flask Web 服务
-├── rag_module.py # RAG 检索与 LLM 调用（核心）
-├── sql_rf_model.pkl # 随机森林模型
-├── sql_tfidf.pkl # TF-IDF 向量器
+├── app.py # Flask 主入口
+├── agent.py # Agent 创建与对话
+├── tools.py # Agent 工具（检测/知识库/靶场）
+├── detector.py # SQL 检测模型
+├── rag_module.py # RAG 检索模块
+├── templates/
+│ └── index.html # 前端页面
 ├── knowledge.txt # 知识库源文件
-├── chroma_db/ # 向量库持久化目录（自动生成）
-├── requirements.txt # Python 依赖
-└── docker_start.bat # Docker 靶场启动脚本
-.gitignore
+├── chroma_db/ # 向量库（自动生成，已忽略）
+├── requirements.txt
+└── .gitignore
 README.md
 ```
