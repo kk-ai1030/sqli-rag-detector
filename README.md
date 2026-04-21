@@ -20,7 +20,6 @@
 | Web 框架 | Flask |
 | 机器学习 | scikit-learn（随机森林） |
 | 向量数据库 | Chroma（持久化） |
-| 大模型 | 通义千问 Qwen3-Max |
 | Agent 框架 | LangChain ReAct |
 | 容器 | Docker |
 
